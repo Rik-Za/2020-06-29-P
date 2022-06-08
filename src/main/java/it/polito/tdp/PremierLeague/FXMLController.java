@@ -8,6 +8,9 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
+
+import it.polito.tdp.PremierLeague.model.Coppia;
+import it.polito.tdp.PremierLeague.model.Match;
 import it.polito.tdp.PremierLeague.model.Model;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -39,29 +42,63 @@ public class FXMLController {
     private TextField txtMinuti; // Value injected by FXMLLoader
 
     @FXML // fx:id="cmbMese"
-    private ComboBox<?> cmbMese; // Value injected by FXMLLoader
+    private ComboBox<Integer> cmbMese; // Value injected by FXMLLoader
 
     @FXML // fx:id="cmbM1"
-    private ComboBox<?> cmbM1; // Value injected by FXMLLoader
+    private ComboBox<Match> cmbM1; // Value injected by FXMLLoader
 
     @FXML // fx:id="cmbM2"
-    private ComboBox<?> cmbM2; // Value injected by FXMLLoader
+    private ComboBox<Match> cmbM2; // Value injected by FXMLLoader
 
     @FXML // fx:id="txtResult"
     private TextArea txtResult; // Value injected by FXMLLoader
 
     @FXML
     void doConnessioneMassima(ActionEvent event) {
+    	List<Coppia> ris = this.model.connessioniMax();
+    	txtResult.appendText("Connessione massima:\n");
+    	for(Coppia c: ris)
+    		txtResult.appendText(c.toString()+"\n");
     	
     }
 
     @FXML
     void doCreaGrafo(ActionEvent event) {
+    	txtResult.clear();
+    	int mese = cmbMese.getValue();
+    	String minuti = txtMinuti.getText();
+    	try {
+    		int min = Integer.parseInt(minuti);
+    		String ris = this.model.creaGrafo(min, mese);
+    		txtResult.setText(ris);
+    		
+    		cmbM1.getItems().clear();
+    		cmbM2.getItems().clear();
+    		cmbM1.getItems().addAll(this.model.getVertici());
+    		cmbM2.getItems().addAll(this.model.getVertici());
+    		
+    		
+    	}catch(NumberFormatException e) {
+    		txtResult.setText("Inserisci un valore numerico!");
+    		return;
+    	}
     	
     }
 
     @FXML
     void doCollegamento(ActionEvent event) {
+    	Match m1=cmbM1.getValue();
+    	Match m2=cmbM2.getValue();
+    	if(m1.equals(m2)) {
+    		txtResult.setText("Scegliere due match diversi!");
+    		return;
+    	}
+    	List<Match> ris=this.model.calcolaPercorso(m1, m2);
+    	int ottimo = this.model.getPesoOttimo();
+    	txtResult.setText("Ricorsione effettuata!\n");
+    	txtResult.appendText("Peso massimo: "+ottimo+"\n");
+    	for(Match m: ris)
+    		txtResult.appendText(m.getMatchID()+"\n");
     	
     }
 
@@ -79,6 +116,8 @@ public class FXMLController {
     
     public void setModel(Model model) {
     	this.model = model;
+    	for(int i=1;i<=12;i++)
+    		cmbMese.getItems().add(i);
   
     }
     
